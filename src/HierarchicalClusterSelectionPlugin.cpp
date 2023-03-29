@@ -132,7 +132,7 @@ namespace CytosploreViewerPlugin
         , _settingsAction(this)
         , _treeView(nullptr)
         , _selectedOptionsAction(this, "Selection")
-        , _commandAction(this)
+        , _commandAction(this,"command")
     {
         setSerializationName(getGuiName());
 
@@ -145,11 +145,9 @@ namespace CytosploreViewerPlugin
         connect(&_selectedDatasetsAction, &SelectedDatasetsAction::datasetAdded, this, &HierarchicalClusterSelectionPlugin::datasetAdded);
 
         publishAndSerializeAction(&_selectedOptionsAction, true);
-
-        _serializedActions.push_back(&_selectedDatasetsAction);
-        
-        
-        
+        serializeAction(&_selectedDatasetsAction);
+    	serializeAction(&_settingsAction);
+        serializeAction(&_commandAction);
     }
 
     QString HierarchicalClusterSelectionPlugin::getOriginalName() const
@@ -186,6 +184,7 @@ namespace CytosploreViewerPlugin
         _treeView->setHeaderHidden(true);
         _treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         _treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+        
         QItemSelectionModel *selectionModel = _treeView->selectionModel();
         connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &HierarchicalClusterSelectionPlugin::selectionChanged);
         mainLayout->addWidget(_treeView, 1, 0);
@@ -249,7 +248,7 @@ namespace CytosploreViewerPlugin
         commands.push_back(command);
         _commandAction.setVariant(commands);
 
-        
+        _treeView->expandToDepth(1);
     }
 
     QVariantMap HierarchicalClusterSelectionPlugin::toVariantMap() const
@@ -266,7 +265,17 @@ namespace CytosploreViewerPlugin
 
     }
 
-
+    void HierarchicalClusterSelectionPlugin::serializeAction(WidgetAction* w)
+    {
+        assert(w != nullptr);
+        if (w == nullptr)
+            return;
+        QString name = w->text();
+        assert(!name.isEmpty());
+        QString apiName = local::toCamelCase(name, ' ');
+        w->setSerializationName(apiName);
+    	_serializedActions.append(w);
+    }
 
     void HierarchicalClusterSelectionPlugin::publishAndSerializeAction(WidgetAction* w, bool serialize)
     {

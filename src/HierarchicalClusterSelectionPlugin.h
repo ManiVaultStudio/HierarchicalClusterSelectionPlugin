@@ -77,7 +77,7 @@ namespace  CytosploreViewerPlugin
 
     private:
 
-
+        void serializeAction(WidgetAction* w);
         void publishAndSerializeAction(WidgetAction* w, bool serialize = true);
 
 
