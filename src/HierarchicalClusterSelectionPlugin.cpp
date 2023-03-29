@@ -240,15 +240,8 @@ namespace CytosploreViewerPlugin
         _selectedOptionsAction.connectToPublicActionByName("Cluster Differential Expression 1::SelectClusters1");
         _selectedOptionsAction.connectToPublicActionByName("Cluster Differential Expression 1::SelectClusters2");
         _selectedOptionsAction.connectToPublicActionByName("Cluster Differential Expression 1::SelectClusters3");
-
-        _commandAction.connectToPublicActionByName("Cluster Differential Expression 1::InvokeMethods");
-        QVariantList commands;
-        QVariantList command;
-        command << QString("LoadedDataSettings") << "hide";
-        commands.push_back(command);
-        _commandAction.setVariant(commands);
-
-        _treeView->expandToDepth(1);
+        
+        _treeView->expandRecursively(QModelIndex(), 1);
     }
 
     QVariantMap HierarchicalClusterSelectionPlugin::toVariantMap() const
@@ -370,6 +363,7 @@ namespace CytosploreViewerPlugin
                                    pixmap.fill(cluster.getColor());
                                    correspondingItem = new QStandardItem(pixmap,name);
                                    correspondingItem->setData(h, Qt::UserRole);
+									
                                    item->appendRow(correspondingItem);
                                }
                             	get_recursive_cluster_tree(correspondingItem, currentDataset, hierarchy, h + 1, firstTime, intersection, intersectingIndices);
