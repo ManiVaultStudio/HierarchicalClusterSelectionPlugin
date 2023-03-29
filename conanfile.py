@@ -17,11 +17,11 @@ class HierarchicalClusterSelectionPluginConan(ConanFile):
     as described in https://github.com/hdps/core/wiki/Branch-naming-rules
     """
 
-    name = "ENVILoaderPlugin"
-    description = "Load ENVI data into the HDPS framework. "
+    name = "HierarchicalClusterSelectionPlugin"
+    description = "Hierarchy clustering view plugin the ManiVault framework. "
     topics = ("hdps", "plugin", "data", "HierarchicalClusterSelectionPlugin")
     url = "https://github.com/hdps/HierarchicalClusterSelectionPlugin"
-    author = "B. van Lew b.van_lew@lumc.nl, adapted by T. Höllt t.hollt-1@tudelft.nl"  # conan recipe author
+    author = "B. van Lew b.van_lew@lumc.nl, adapted by T. Kroes t.kroes@lumc.nl"  # conan recipe author
     license = "MIT"  # conan recipe license
 
     short_paths = True
