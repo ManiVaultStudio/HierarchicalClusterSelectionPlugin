@@ -29,6 +29,12 @@ public:
 
     void init() override;
 
+    /**
+    * Load one (or more datasets in the view)
+    * @param datasets Dataset(s) to load
+    */
+    void loadData(const hdps::Datasets& datasets) override;
+
 public: // Serialization
 
     /**
@@ -44,29 +50,42 @@ public: // Serialization
     QVariantMap toVariantMap() const override;
 
 private:
+
     /**
-    * Load one (or more datasets in the view)
-    * @param datasets Dataset(s) to load
+    * Repopulates the tree view, called when new data is loaded
+    * @return 
     */
-    void loadData(const hdps::Datasets& datasets) override;
+    void reloadTree();
 
-    void datasetsChanged();
-
+    /**
+    * Get the names of clusters that are currently selected
+    * @return List GUI cluster names
+    */
     QStringList getSelectionClusterNames() const;
 
+    /**
+    * Check if a data set is loaded
+    * @param id: GUID of data set to be checked
+    * @return Whether the checked data set is loaded
+    */
     bool isInLoadedDatasets(const QString& id) const;
 
 protected slots:
 
+    /**
+    * Notify core that the currently selected clusters are selected
+    * @param id: GUID of selected clusters, unused (here for compatability with QItemSelectionModel::selectionChanged)
+    * @param id: GUID of de-selected clusters, unused (here for compatability with QItemSelectionModel::selectionChanged)
+    */
     void selectionChanged(const QItemSelection& selectedTreeModelIDs, const QItemSelection& deselectedTreeModelIDs);
 
 private:
-    const QString                       _originalName;
-    QStandardItemModel                  _model;
-    QTreeView*                          _treeView;
-    std::vector<hdps::Dataset<hdps::DatasetImpl>>  _datasets;
+    QStandardItemModel                  _model;         // data model
+    QTreeView*                          _treeView;      // hierarchical tree view
+    hdps::Datasets                      _datasets;      // loaded data sets
 
-    hdps::gui::DropWidget*              _dropWidget;
+    StringsAction                       _dataGUIDs;     // Action that serialized the loaded data sets
+    hdps::gui::DropWidget*              _dropWidget;    // ManiVault widget to enable drag&drop data loading
 
 };
 

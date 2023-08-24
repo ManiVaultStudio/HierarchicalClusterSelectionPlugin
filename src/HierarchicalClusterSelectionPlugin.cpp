@@ -56,7 +56,6 @@ namespace local
                 hdps::Dataset<Clusters> clusterData = childDatasets[c];
                 auto clusters = clusterData->getClusters();
 
-
                 if (intersection && !firstTime)
                 {
                     QSet<QString> clusterNames;
@@ -134,12 +133,14 @@ namespace local
 
 HierarchicalClusterSelectionPlugin::HierarchicalClusterSelectionPlugin(const hdps::plugin::PluginFactory* factory)
     : ViewPlugin(factory)
-    , _originalName(getGuiName())
     , _treeView(nullptr)
     , _datasets()
     , _dropWidget(nullptr)
+    , _dataGUIDs(this, "DataGUIDsAction")
 {
     setSerializationName(getGuiName());
+
+    _dataGUIDs.setSerializationName("DataGUIDsAction");
 }
 
 void HierarchicalClusterSelectionPlugin::init()
@@ -199,7 +200,6 @@ void HierarchicalClusterSelectionPlugin::init()
             else {
                 dropRegions << new DropWidget::DropRegion(this, "Points", QString("Visualize %1 as parallel coordinates").arg(candidateGUINames.join(", ")), "map-marker-alt", true, [this, datasets]() {
                     loadData(datasets);
-                    _dropWidget->setShowDropIndicator(false);
                     });
             }
         }
@@ -209,6 +209,9 @@ void HierarchicalClusterSelectionPlugin::init()
 
         return dropRegions;
         });
+
+    qDebug() << "HierarchicalClusterSelectionPlugin::init";
+
 }
 
 bool HierarchicalClusterSelectionPlugin::isInLoadedDatasets(const QString& id) const
@@ -229,29 +232,38 @@ void HierarchicalClusterSelectionPlugin::loadData(const hdps::Datasets& datasets
     for (const auto& dataset : datasets)
         _datasets.push_back(dataset);
 
-    datasetsChanged();
+    // disable drop widget both after right-click and drag&drop loading
+    _dropWidget->setShowDropIndicator(false);
+
+    // Re-fresh tree view
+    reloadTree();
 }
 
-void HierarchicalClusterSelectionPlugin::datasetsChanged()
+void HierarchicalClusterSelectionPlugin::reloadTree()
 {
     _model.clear();
 
-    QStringList setNames;
+    qDebug() << "HierarchicalClusterSelectionPlugin::reloadTree ";
+
+    QStringList datasetNames, datasetIDs;
 
     for (const auto& dataset : _datasets)
     {
         if (!dataset.isValid())
             return;
 
-        setNames << dataset->getGuiName();
+        datasetNames << dataset->getGuiName();
+        datasetIDs << dataset->getId();
     }
 
-    qDebug() << "HierarchicalClusterSelectionPlugin: load " << setNames;
+    _dataGUIDs.setStrings(datasetIDs);
+
+    qDebug() << "HierarchicalClusterSelectionPlugin: load " << datasetNames;
 
     const QVector<QString> hierarchy = { "class", "subclass","cross_species_cluster" };
 
     for (const auto& dataset : _datasets)
-        local::get_recursive_cluster_tree(_model.invisibleRootItem(), dataset, hierarchy, 0, _datasets.front() == dataset, true);
+        local::get_recursive_cluster_tree(_model.invisibleRootItem(), dataset, hierarchy, 0, _datasets.first() == dataset, true);
 
 }
 
@@ -259,32 +271,31 @@ void HierarchicalClusterSelectionPlugin::fromVariantMap(const QVariantMap& varia
 {
     ViewPlugin::fromVariantMap(variantMap);
 
-    //auto version = variantMap.value("HierarchicalClusterSelectionPluginVersion", QVariant::fromValue(uint(0))).toUInt();
-    //if (version > 0)
-    //{
-    //    for (auto action : _serializedActions)
-    //    {
-    //        if (variantMap.contains(action->getSerializationName()))
-    //            action->fromParentVariantMap(variantMap);
-    //    }
-    //}
-        
-    _treeView->expandRecursively(QModelIndex(), 1);
+    // load data given data set IDs
+    _dataGUIDs.fromParentVariantMap(variantMap);
+
+    if (_dataGUIDs.getStrings().size() > 0)
+    {
+        hdps::Datasets datasets = {};
+
+        for (const auto& id : _dataGUIDs.getStrings())
+            _datasets.push_back(hdps::data().getSet(id));
+
+        loadData(datasets);
+
+        _treeView->expandRecursively(QModelIndex(), 1);
+    }
+
 }
 
 QVariantMap HierarchicalClusterSelectionPlugin::toVariantMap() const
 {
     QVariantMap variantMap = ViewPlugin::toVariantMap();
 
-    //variantMap["HierarchicalClusterSelectionPluginVersion"] = 2;
-    //for (auto action : _serializedActions)
-    //{
-    //    assert(action->getSerializationName() != "#Properties");
-    //    action->insertIntoVariantMap(variantMap);
-    //}
+    // save data set IDs to load data sets in fromVariantMap
+    _dataGUIDs.insertIntoVariantMap(variantMap);
         
     return variantMap;
-
 }
 
 QStringList HierarchicalClusterSelectionPlugin::getSelectionClusterNames() const
@@ -309,13 +320,11 @@ void HierarchicalClusterSelectionPlugin::selectionChanged(const QItemSelection& 
 
     for (const auto& dataset : _datasets)
     {
-        qDebug() << dataset->getGuiName();
         for (const auto& child : dataset->getChildren({ ClusterType }))
         {
             if (child->getGuiName() == "cross_species_cluster")
             {
                 static_cast<hdps::Dataset<Clusters>>(child)->setSelectionNames(selectionClusterNames);
-                qDebug() << selectionClusterNames;
             }
         }
     }
@@ -345,6 +354,24 @@ hdps::DataTypes HierarchicalClusterSelectionFactory::supportedDataTypes() const
 hdps::gui::PluginTriggerActions HierarchicalClusterSelectionFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
 {
     PluginTriggerActions pluginTriggerActions;
+
+    const auto getInstance = [this]() -> HierarchicalClusterSelectionPlugin* {
+        return dynamic_cast<HierarchicalClusterSelectionPlugin*>(plugins().requestViewPlugin(getKind()));
+        };
+
+    const auto numberOfDatasets = datasets.count();
+
+    if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
+        if (numberOfDatasets >= 1) {
+            if (std::all_of(datasets.cbegin(), datasets.cend(), [](const auto& dataset) { return dataset->getDataType() == PointType; })) {
+                auto pluginTriggerAction = new PluginTriggerAction(const_cast<HierarchicalClusterSelectionFactory*>(this), this, "HierarchicalClusterSelection", "Load dataset(s) hierarchical cluster selection viewer", getIcon(), [this, getInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
+                        getInstance()->loadData(datasets);
+                    });
+
+                pluginTriggerActions << pluginTriggerAction;
+            }
+        }
+    }
 
     return pluginTriggerActions;
 }
