@@ -4,6 +4,8 @@ set(PROJECT "HierarchicalClusterSelectionPlugin")
 
 PROJECT(${PROJECT})
 
+set(CMAKE_AUTOMOC ON)
+
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /DWIN32 /EHsc /MP /permissive- /Zc:__cplusplus")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG /NODEFAULTLIB:LIBCMT")
@@ -24,29 +26,19 @@ set(PLUGIN
 )
 
 set(PLUGIN_MOC_HEADERS
-    src/ScatterplotPlugin.h
-)
-
-set(ACTIONS
-    src/PluginAction.h
-    src/PluginAction.cpp
-    src/SelectedDatasetsAction.h
-    src/SelectedDatasetsAction.cpp
-    src/SettingsAction.h
-    src/SettingsAction.cpp
+    src/HierarchicalClusterSelectionPlugin.h
 )
 
 set(AUX
     src/HierarchicalClusterSelectionPlugin.json
 )
 
-set(SOURCES ${PLUGIN} ${ACTIONS})
+set(SOURCES ${PLUGIN})
 
 source_group(Plugin FILES ${SOURCES})
-source_group(Actions FILES ${ACTIONS})
 source_group(Aux FILES ${AUX})
 
-add_library(${PROJECT} SHARED ${SOURCES} ${UTIL} ${AUX} ${WIDGETS})
+add_library(${PROJECT} SHARED ${SOURCES} ${AUX})
 
 qt_wrap_cpp(HCLUS_MOC ${PLUGIN_MOC_HEADERS} TARGET ${PROJECT})
 target_sources(${PROJECT} PRIVATE ${HCLUS_MOC})
@@ -86,31 +78,4 @@ add_custom_command(TARGET ${PROJECT} POST_BUILD
 if(MSVC)
     set_property(TARGET ${PROJECT} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<IF:$<CONFIG:DEBUG>,${INSTALL_DIR}/debug,${INSTALL_DIR}/release>)
     set_property(TARGET ${PROJECT} PROPERTY VS_DEBUGGER_COMMAND $<IF:$<CONFIG:DEBUG>,${INSTALL_DIR}/debug/HDPS.exe,${INSTALL_DIR}/release/HDPS.exe>)
-
-    set_target_properties(${PROJECT} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=%PATH%;${Qt6_DIR}/../../../bin;$<$<CONFIG:DEBUG>:${INSTALL_DIR}/debug>; $<$<CONFIG:RELEASE>:${INSTALL_DIR}/release>")
 endif()
-
-if(APPLE)
-    target_link_libraries("${PROJECT}" PUBLIC debug "/usr/local/lib/libomp.dylib")
-    target_link_libraries("${PROJECT}" PUBLIC optimized "/usr/local/lib/libomp.dylib")       
-endif()
-
-find_package(OpenMP REQUIRED)
-if(OpenMP_FOUND)
-    message(STATUS "OpenMP found")
-    target_link_libraries(${PROJECT} PUBLIC OpenMP::OpenMP_CXX)
-    target_compile_options(${PROJECT} PRIVATE ${OpenMP_CXX_FLAGS})
-else()
-    message(WARNING "OpenMP not found!")
-endif()
-
- macro(print_all_variables)
-    message(STATUS "print_all_variables------------------------------------------{")
-    get_cmake_property(_variableNames VARIABLES)
-    foreach (_variableName ${_variableNames})
-        message(STATUS "${_variableName}=${${_variableName}}")
-    endforeach()
-    message(STATUS "print_all_variables------------------------------------------}")
-endmacro()
-
-#print_all_variables()   
