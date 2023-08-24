@@ -182,27 +182,25 @@ void HierarchicalClusterSelectionPlugin::init()
         if (datasetsMimeData == nullptr)
             return dropRegions;
 
-        if (datasetsMimeData->getDatasets().count() > 1)
-            return dropRegions;
+        const auto datasets = datasetsMimeData->getDatasets();
 
-        const auto dataset = datasetsMimeData->getDatasets().first();
-        const auto datasetGuiName = dataset->text();
-        const auto datasetId = dataset->getId();
-        const auto dataType = dataset->getDataType();
+        if (std::all_of(datasets.cbegin(), datasets.cend(), [](const auto& dataset) { return dataset->getDataType() == PointType; }))
+        {
+            QStringList candidateIDs, candidateGUINames;
+            for (const auto& dataset : datasets)
+            {
+                candidateIDs << dataset->getId();
+                candidateGUINames << dataset->text();
+            }
 
-        if (dataType == PointType) {
-
-            const auto candidateDataset = _core->requestDataset(datasetId);
-
-            if (isInLoadedDatasets(datasetId)) {
+            if (std::any_of(candidateIDs.cbegin(), candidateIDs.cend(), [&](const auto& id) { return isInLoadedDatasets(id); })) {
                 dropRegions << new DropWidget::DropRegion(this, "Warning", "Data already loaded", "exclamation-circle", false);
             }
             else {
-                dropRegions << new DropWidget::DropRegion(this, "Points", QString("Visualize %1 as parallel coordinates").arg(datasetGuiName), "map-marker-alt", true, [this, candidateDataset]() {
-                    loadData({ candidateDataset });
+                dropRegions << new DropWidget::DropRegion(this, "Points", QString("Visualize %1 as parallel coordinates").arg(candidateGUINames.join(", ")), "map-marker-alt", true, [this, datasets]() {
+                    loadData(datasets);
                     _dropWidget->setShowDropIndicator(false);
                     });
-
             }
         }
         else {
