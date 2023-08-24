@@ -279,7 +279,7 @@ void HierarchicalClusterSelectionPlugin::fromVariantMap(const QVariantMap& varia
         hdps::Datasets datasets = {};
 
         for (const auto& id : _dataGUIDs.getStrings())
-            _datasets.push_back(hdps::data().getSet(id));
+            datasets.push_back(hdps::data().getSet(id));
 
         loadData(datasets);
 
