@@ -12,15 +12,15 @@ class HierarchicalClusterSelectionPluginConan(ConanFile):
     """Class to package the HierarchicalClusterSelection plugin using conan
 
     Packages both RELEASE and DEBUG.
-    Uses rules_support (github.com/hdps/rulessupport) to derive
+    Uses rules_support (github.com/ManiVaultStudio/rulessupport) to derive
     versioninfo based on the branch naming convention
-    as described in https://github.com/hdps/core/wiki/Branch-naming-rules
+    as described in https://github.com/ManiVaultStudio/core/wiki/Branch-naming-rules
     """
 
     name = "HierarchicalClusterSelectionPlugin"
     description = "Hierarchy clustering view plugin the ManiVault framework. "
-    topics = ("hdps", "plugin", "data", "HierarchicalClusterSelectionPlugin")
-    url = "https://github.com/hdps/HierarchicalClusterSelectionPlugin"
+    topics = ("ManiVault", "plugin", "data", "HierarchicalClusterSelectionPlugin")
+    url = "https://github.com/ManiVaultStudio/HierarchicalClusterSelectionPlugin"
     author = "B. van Lew b.van_lew@lumc.nl, adapted by T. Kroes t.kroes@lumc.nl"  # conan recipe author
     license = "MIT"  # conan recipe license
 
@@ -34,7 +34,7 @@ class HierarchicalClusterSelectionPluginConan(ConanFile):
 
     scm = {
         "type": "git",
-        "subfolder": "hdps/HierarchicalClusterSelectionPlugin",
+        "subfolder": "ManiVaultStudio/HierarchicalClusterSelectionPlugin",
         "url": "auto",
         "revision": "auto",
     }
@@ -95,7 +95,7 @@ class HierarchicalClusterSelectionPluginConan(ConanFile):
 
     def _configure_cmake(self):
         cmake = CMake(self)
-        cmake.configure(build_script_folder="hdps/HierarchicalClusterSelectionPlugin")
+        cmake.configure(build_script_folder="ManiVaultStudio/HierarchicalClusterSelectionPlugin")
         cmake.verbose = True
         return cmake
 
