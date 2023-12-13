@@ -8,7 +8,8 @@
 
 #include "SettingsAction.h"
 
-// HDPS includes
+// MV includes
+#include <cstdio>
 #include <ViewPlugin.h>
 #include <Dataset.h>
 
@@ -18,15 +19,15 @@
 
 
 
-using hdps::plugin::ViewPluginFactory;
-using hdps::plugin::ViewPlugin;
+using mv::plugin::ViewPluginFactory;
+using mv::plugin::ViewPlugin;
 
 
 class Points;
 class Clusters;
 
 
-namespace hdps {
+namespace mv {
     namespace gui {
         class DropWidget;
     }
@@ -38,23 +39,24 @@ namespace  CytosploreViewerPlugin
     {
         Q_OBJECT
 
-            typedef std::pair<QString, std::vector<ptrdiff_t>> DimensionNameMatch;
+        typedef std::pair<QString, std::vector<ptrdiff_t>> DimensionNameMatch;
 
 
     public:
-        HierarchicalClusterSelectionPlugin(const hdps::plugin::PluginFactory* factory);
+        HierarchicalClusterSelectionPlugin(const mv::plugin::PluginFactory* factory);
 
         QString getOriginalName() const;
 
         void init() override;
 
-        void onDataEvent(hdps::DataEvent* dataEvent);
+        void onDataEvent(mv::DatasetEvent* dataEvent);
+
 
         /**
         * Load one (or more datasets in the view)
         * @param datasets Dataset(s) to load
         */
-        void loadData(const hdps::Datasets& datasets) override;
+        void loadData(const mv::Datasets& datasets) override;
 
 
         void addConfigurableWidget(const QString& name, QWidget* widget);
@@ -81,7 +83,7 @@ namespace  CytosploreViewerPlugin
         void publishAndSerializeAction(WidgetAction* w, bool serialize = true);
 
 
-        hdps::Dataset<hdps::DatasetImpl>& getDataset(qsizetype index)
+        mv::Dataset<mv::DatasetImpl>& getDataset(qsizetype index)
         {
 
             return _selectedDatasetsAction.getDataset(index);
@@ -89,7 +91,7 @@ namespace  CytosploreViewerPlugin
 
 
        
-        void datasetChanged(qsizetype index, const hdps::Dataset<hdps::DatasetImpl>& dataset);
+        void datasetChanged(qsizetype index, const mv::Dataset<mv::DatasetImpl>& dataset);
 
 
         QStringList getSelection() const;
@@ -120,10 +122,13 @@ namespace  CytosploreViewerPlugin
 
     class HierarchicalClusterSelectionFactory : public ViewPluginFactory
     {
-        Q_OBJECT
+
+            Q_INTERFACES(mv::plugin::ViewPluginFactory mv::plugin::PluginFactory)
+            Q_OBJECT
             Q_PLUGIN_METADATA(IID   "nl.BioVault.HierarchicalClusterSelectionPlugin"
                 FILE  "HierarchicalClusterSelectionPlugin.json")
-            Q_INTERFACES(hdps::plugin::ViewPluginFactory hdps::plugin::PluginFactory)
+
+
 
     public:
         HierarchicalClusterSelectionFactory() {}
@@ -134,10 +139,10 @@ namespace  CytosploreViewerPlugin
 
         HierarchicalClusterSelectionPlugin* produce() override;
 
-        hdps::DataTypes supportedDataTypes() const override;
+        mv::DataTypes supportedDataTypes() const override;
 
 
-        hdps::gui::PluginTriggerActions getPluginTriggerActions(const hdps::Datasets& datasets) const override;
+        mv::gui::PluginTriggerActions getPluginTriggerActions(const mv::Datasets& datasets) const override;
 
         
     };

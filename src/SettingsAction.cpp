@@ -5,7 +5,7 @@
 
 #include <QMenu>
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 SettingsAction::SettingsAction(ViewPlugin* plugin) :
     PluginAction(plugin, plugin, "Settings")
@@ -22,7 +22,7 @@ SettingsAction::SettingsAction(ViewPlugin* plugin) :
 
     updateEnabled();
 
-   // _exportAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("camera"));
+   // _exportAction.setIcon(mv::Application::getIconFont("FontAwesome").getIcon("camera"));
    // _exportAction.setDefaultWidgetFlags(TriggerAction::Icon);
 /*
     connect(&_exportAction, &TriggerAction::triggered, this, [this]() {

@@ -3,7 +3,7 @@
 #include <ViewPlugin.h>
 
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 PluginAction::PluginAction(QObject* parent, ViewPlugin* plugin, const QString& title) :
     WidgetAction(parent),
