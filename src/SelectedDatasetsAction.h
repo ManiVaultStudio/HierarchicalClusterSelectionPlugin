@@ -8,7 +8,7 @@
 #include "actions/VariantAction.h"
 
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 
 class HierarchicalClusterSelectionPlugin;
@@ -37,7 +37,7 @@ protected:
 
         DatasetPickerAction	      datasetPickerAction;
 
-        hdps::Dataset<hdps::DatasetImpl>   currentDataset;
+        mv::Dataset<mv::DatasetImpl>   currentDataset;
         StringAction              datasetNameStringAction;
         ToggleAction              datasetSelectedAction;
     };
@@ -69,10 +69,10 @@ public:
 
     SelectedDatasetsAction(ViewPlugin* plugin, qsizetype initialNrOfDatasets = 2, QString instanceName="SelectedDatasets", QString tooltipName = "Selected Datasets");
 
-    hdps::gui::ToggleAction& getDatasetSelectedAction(const std::size_t index);
+    mv::gui::ToggleAction& getDatasetSelectedAction(const std::size_t index);
 
 
-    hdps::Dataset<hdps::DatasetImpl>& getDataset(std::size_t index) const;
+    mv::Dataset<mv::DatasetImpl>& getDataset(std::size_t index) const;
 
 
 

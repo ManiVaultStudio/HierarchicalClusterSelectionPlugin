@@ -3,7 +3,7 @@
 // Local includes
 #include "SelectedDatasetsAction.h"
 
-// HDPS includes
+// MV includes
 #include "PointData/PointData.h"
 #include "ClusterData/ClusterData.h"
 #include "event/Event.h"
@@ -37,12 +37,13 @@
 
 Q_PLUGIN_METADATA(IID "nl.BioVault.HierarchicalClusterSelectionPlugin")
 //Q_DECLARE_METATYPE(QWidget*)
-using namespace hdps;
-using namespace hdps::gui;
-using namespace hdps::plugin;
-using namespace hdps::util;
+using namespace mv;
+using namespace mv::gui;
+using namespace mv::plugin;
+using namespace mv::util;
 
-namespace 
+
+namespace
 {
     namespace local
     {
@@ -68,7 +69,7 @@ namespace
             }
         }
 
-        
+
 
 
         QString fromCamelCase(const QString& s, QChar c = '_') {
@@ -119,17 +120,16 @@ namespace
     }
 
 
-    
+
 }
 
 namespace CytosploreViewerPlugin
 {
-    HierarchicalClusterSelectionPlugin::HierarchicalClusterSelectionPlugin(const hdps::plugin::PluginFactory* factory)
+    HierarchicalClusterSelectionPlugin::HierarchicalClusterSelectionPlugin(const mv::plugin::PluginFactory* factory)
         : ViewPlugin(factory)
         , _originalName(getGuiName())
         , _selectedDatasetsAction(this,3,"SelectedDatasets", "Selected Datasets")
 
-        , _settingsAction(this)
         , _treeView(nullptr)
         , _selectedOptionsAction(this, "Selection")
         , _commandAction(this,"command")
@@ -146,7 +146,6 @@ namespace CytosploreViewerPlugin
 
         publishAndSerializeAction(&_selectedOptionsAction, true);
         serializeAction(&_selectedDatasetsAction);
-    	serializeAction(&_settingsAction);
         serializeAction(&_commandAction);
     }
 
@@ -162,53 +161,55 @@ namespace CytosploreViewerPlugin
         auto mainLayout = new QGridLayout();
         delete mainWidget.layout();
         mainWidget.setLayout(mainLayout);
-
        // mainWidget.setAcceptDrops(true);
         mainWidget.setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-
         const int margin = 0;
         mainLayout->setContentsMargins(margin, margin, margin, margin);
         mainLayout->setSpacing(0);
-
-        
-        _settingsAction.addAction(_selectedDatasetsAction, 1);
-        _settingsAction.addAction(_selectedOptionsAction, 2);
-        auto *widget = _settingsAction.createWidget(&mainWidget, 1);
-        widget->hide();
-        mainLayout->addWidget(widget, 0, 0);
-
-        
-
+        const auto topToolbarWidget = new QWidget();
+        const auto topToolbarLayout = new QHBoxLayout();
+        topToolbarLayout->setContentsMargins(0, 0, 0, 0);
+        topToolbarLayout->setSpacing(0);
+        auto datasetsActionWidget= _selectedDatasetsAction.createWidget(&getWidget());
+        datasetsActionWidget->setMaximumWidth(100);
+        datasetsActionWidget->setMinimumWidth(50);
+        topToolbarLayout->addWidget(_selectedDatasetsAction.createLabelWidget(&getWidget()));
+        topToolbarLayout->addWidget(datasetsActionWidget);
+        auto selectedOptionsActionWidget = _selectedOptionsAction.createWidget(&getWidget());
+        selectedOptionsActionWidget->setMaximumWidth(150);
+        selectedOptionsActionWidget->setMinimumWidth(100);
+        topToolbarLayout->addWidget(_selectedOptionsAction.createLabelWidget(&getWidget()));
+        topToolbarLayout->addWidget(selectedOptionsActionWidget);
+        topToolbarWidget->setAutoFillBackground(true);
+        topToolbarWidget->setLayout(topToolbarLayout);
+        mainLayout->addWidget(topToolbarWidget, 0, 0);
        _treeView = new QTreeView(&mainWidget);
         _treeView->setModel(&_model);
         _treeView->setHeaderHidden(true);
         _treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         _treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        
         QItemSelectionModel *selectionModel = _treeView->selectionModel();
         connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &HierarchicalClusterSelectionPlugin::selectionChanged);
         mainLayout->addWidget(_treeView, 1, 0);
 
-        
-        
     }
 
 
-    void HierarchicalClusterSelectionPlugin::onDataEvent(hdps::DataEvent* dataEvent)
+    void HierarchicalClusterSelectionPlugin::onDataEvent(mv::DatasetEvent* dataEvent) 
     {
         // Event which gets triggered when a dataset is added to the system.
-        if (dataEvent->getType() == EventType::DataAdded)
+        if (dataEvent->getType() == EventType::DatasetAdded)
         {
             //    _differentialExpressionWidget->addDataOption(dataEvent->getDataset()->getGuiName());
         }
         // Event which gets triggered when the data contained in a dataset changes.
-        if (dataEvent->getType() == EventType::DataChanged)
+        if (dataEvent->getType() == EventType::DatasetDataChanged)
         {
             //dataEvent->getDataset()
         }
     }
 
-    void HierarchicalClusterSelectionPlugin::loadData(const hdps::Datasets& datasets)
+    void HierarchicalClusterSelectionPlugin::loadData(const mv::Datasets& datasets)
     {
         // Exit if there is nothing to load
         if (datasets.isEmpty())
@@ -237,9 +238,9 @@ namespace CytosploreViewerPlugin
             }
         }
 
-        _selectedOptionsAction.connectToPublicActionByName("Cluster Differential Expression 1::SelectClusters1");
-        _selectedOptionsAction.connectToPublicActionByName("Cluster Differential Expression 1::SelectClusters2");
-        _selectedOptionsAction.connectToPublicActionByName("Cluster Differential Expression 1::SelectClusters3");
+        //_selectedOptionsAction.connectToPublicActionByName("Cluster Differential Expression 1::SelectClusters1");
+        //_selectedOptionsAction.connectToPublicActionByName("Cluster Differential Expression 1::SelectClusters2");
+        //_selectedOptionsAction.connectToPublicActionByName("Cluster Differential Expression 1::SelectClusters3");
         
         _treeView->expandRecursively(QModelIndex(), 1);
     }
@@ -291,7 +292,7 @@ namespace CytosploreViewerPlugin
 
     namespace  local
     {
-	    void get_recursive_cluster_tree(QStandardItem *item, Dataset<hdps::DatasetImpl> currentDataset, const QVector<QString> &hierarchy, qsizetype h,  bool firstTime, bool intersection = true, const std::vector<uint32_t> &indices = {})
+	    void get_recursive_cluster_tree(QStandardItem *item, Dataset<mv::DatasetImpl> currentDataset, const QVector<QString> &hierarchy, qsizetype h,  bool firstTime, bool intersection = true, const std::vector<uint32_t> &indices = {})
 	    {
             if(h >= hierarchy.size())
                 return;
@@ -301,7 +302,7 @@ namespace CytosploreViewerPlugin
             {
                 if (childDatasets[c]->getGuiName() == hierarchy[h])
                 {
-                    hdps::Dataset<Clusters> clusterData = childDatasets[c];
+                    mv::Dataset<Clusters> clusterData = childDatasets[c];
                     auto clusters = clusterData->getClusters();
 
                    
@@ -377,7 +378,7 @@ namespace CytosploreViewerPlugin
 	    }
     }
 
-    void HierarchicalClusterSelectionPlugin::datasetChanged(qsizetype index, const hdps::Dataset<hdps::DatasetImpl>& dataset)
+    void HierarchicalClusterSelectionPlugin::datasetChanged(qsizetype index, const mv::Dataset<mv::DatasetImpl>& dataset)
     {
         const qsizetype NrOfDatasets = _selectedDatasetsAction.size();
 
@@ -396,7 +397,7 @@ namespace CytosploreViewerPlugin
         for (qsizetype i = 0; i < _selectedDatasetsAction.size(); ++i)
         {
             
-            Dataset<hdps::DatasetImpl> currentDataset = _selectedDatasetsAction.getDataset(i).get();
+            Dataset<mv::DatasetImpl> currentDataset = _selectedDatasetsAction.getDataset(i).get();
 
 
             auto childDatasets = currentDataset->getChildren({ ClusterType });
@@ -404,7 +405,7 @@ namespace CytosploreViewerPlugin
             {
                 if (childDatasets[c]->getGuiName() == hierarchy.last())
                 {
-                    hdps::Dataset<Clusters> clusterData = childDatasets[c];
+                    mv::Dataset<Clusters> clusterData = childDatasets[c];
                     auto clusters = clusterData->getClusters();
 
                     for (auto cluster : clusters)
@@ -439,11 +440,11 @@ namespace CytosploreViewerPlugin
 
     void HierarchicalClusterSelectionPlugin::datasetAdded(int index)
     {
-        connect(&_selectedDatasetsAction.getDataset(index), &Dataset<DatasetImpl>::changed, this, [this, index](const hdps::Dataset<hdps::DatasetImpl>& dataset) {datasetChanged(index, dataset); });
+        connect(&_selectedDatasetsAction.getDataset(index), &Dataset<DatasetImpl>::changed, this, [this, index](const mv::Dataset<mv::DatasetImpl>& dataset) {datasetChanged(index, dataset); });
         //connect(&_loadedDatasetsAction.getClusterSelectionAction(index), &OptionsAction::selectedOptionsChanged, this, &HierarchicalClusterSelectionPlugin::clusterSelectionChanged);
         connect(&_selectedDatasetsAction.getDatasetSelectedAction(index), &ToggleAction::toggled, this, [this, index](bool)
             {
-                const hdps::Dataset<hdps::DatasetImpl>& dataset = this->_selectedDatasetsAction.getDataset(index);
+                const mv::Dataset<mv::DatasetImpl>& dataset = this->_selectedDatasetsAction.getDataset(index);
                 datasetChanged(index, dataset);
             });
 
@@ -492,7 +493,7 @@ namespace CytosploreViewerPlugin
                 if (childDatasets[c]->getGuiName() == "cross_species_cluster")
                 {
                     
-                    hdps::Dataset<Clusters> clusterData = childDatasets[c];
+                    mv::Dataset<Clusters> clusterData = childDatasets[c];
                     clusterData->setSelectionNames(selection);
                 }
             }
@@ -510,14 +511,14 @@ namespace CytosploreViewerPlugin
         return new HierarchicalClusterSelectionPlugin(this);
     }
 
-    hdps::DataTypes HierarchicalClusterSelectionFactory::supportedDataTypes() const
+    mv::DataTypes HierarchicalClusterSelectionFactory::supportedDataTypes() const
     {
         DataTypes supportedTypes;
         supportedTypes.append(ClusterType);
         return supportedTypes;
     }
 
-    hdps::gui::PluginTriggerActions HierarchicalClusterSelectionFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
+    mv::gui::PluginTriggerActions HierarchicalClusterSelectionFactory::getPluginTriggerActions(const mv::Datasets& datasets) const
     {
 
         PluginTriggerActions pluginTriggerActions;

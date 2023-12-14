@@ -3,10 +3,9 @@
 #include "actions/Actions.h"
 #include "ViewPlugin.h"
 
+using mv::plugin::ViewPlugin;
 
-using hdps::plugin::ViewPlugin;
-
-class PluginAction : public hdps::gui::WidgetAction
+class PluginAction : public mv::gui::WidgetAction
 {
 public:
     PluginAction(QObject* parent, ViewPlugin* plugin, const QString& title);

@@ -8,8 +8,8 @@
 #include <Dataset.h>
 
 
-using namespace hdps;
-using namespace hdps::gui;
+using namespace mv;
+using namespace mv::gui;
 
 namespace
 {
@@ -33,7 +33,7 @@ SelectedDatasetsAction::Data::Data(SelectedDatasetsAction* parent, int index)
     , datasetPickerAction(parent, "Dataset")
 
     , datasetNameStringAction(parent, "Dataset")
-    , datasetSelectedAction(parent, "Active Dataset", true, true)
+    , datasetSelectedAction(parent, "Active Dataset")
 {
 
 
@@ -45,7 +45,7 @@ SelectedDatasetsAction::Data::Data(SelectedDatasetsAction* parent, int index)
             datasetPickerAction.setText(datasetGuiName);
             datasetNameStringAction.setString(datasetGuiName);
             datasetNameStringAction.setText(datasetGuiName);
-            datasetSelectedAction.setText("");
+            datasetSelectedAction.setText("Dataset");
         }
 
         {
@@ -76,19 +76,19 @@ SelectedDatasetsAction::Data::Data(SelectedDatasetsAction* parent, int index)
 
 
         }
-        QObject::connect(&currentDataset, &Dataset<hdps::DatasetImpl>::changed, [this](const hdps::Dataset<hdps::DatasetImpl>& dataset) -> void {this->datasetNameStringAction.setText(dataset->getGuiName()); });
+        QObject::connect(&currentDataset, &Dataset<mv::DatasetImpl>::changed, [this](const mv::Dataset<mv::DatasetImpl>& dataset) -> void {this->datasetNameStringAction.setText(dataset->getGuiName()); });
 
 
         // setCheckable(true);
     }
 
-    connect(&datasetPickerAction, &DatasetPickerAction::datasetPicked, [this](Dataset<hdps::DatasetImpl> pickedDataset) -> void {
+    connect(&datasetPickerAction, &DatasetPickerAction::datasetPicked, [this](Dataset<mv::DatasetImpl> pickedDataset) -> void {
         currentDataset = pickedDataset;
         });
 
 
 
-    connect(&currentDataset, &Dataset<DatasetImpl>::changed, [this](Dataset<hdps::DatasetImpl> dataset) -> void {
+    connect(&currentDataset, &Dataset<DatasetImpl>::changed, [this](Dataset<mv::DatasetImpl> dataset) -> void {
 
 
         if (datasetPickerAction.getCurrentDataset() != dataset)
@@ -234,12 +234,12 @@ SelectedDatasetsAction::SelectedDatasetsAction(ViewPlugin* plugin, qsizetype ini
     }
     // for (auto i = 0; i < _data.size();++i)
     //     _data[i].reset(new Data(this,i));
-    setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("database"));
+    setIcon(mv::Application::getIconFont("FontAwesome").getIcon("database"));
     setToolTip(tooltipName);
 
 
     connect(&_addDatasetTriggerAction, &TriggerAction::triggered, this, &SelectedDatasetsAction::addDataset);
-    _addDatasetTriggerAction.setIcon(hdps::Application::getIconFont("FontAwesome").getIcon("plus"));
+    _addDatasetTriggerAction.setIcon(mv::Application::getIconFont("FontAwesome").getIcon("plus"));
     QString name = _addDatasetTriggerAction.text();
     assert(!name.isEmpty());
     QString apiName = localNamespace::toCamelCase(name, ' ');
@@ -250,7 +250,7 @@ SelectedDatasetsAction::SelectedDatasetsAction(ViewPlugin* plugin, qsizetype ini
 
 }
 
-hdps::gui::ToggleAction& SelectedDatasetsAction::getDatasetSelectedAction(const std::size_t index)
+mv::gui::ToggleAction& SelectedDatasetsAction::getDatasetSelectedAction(const std::size_t index)
 {
     return data(index)->datasetSelectedAction;
 }
@@ -258,7 +258,7 @@ hdps::gui::ToggleAction& SelectedDatasetsAction::getDatasetSelectedAction(const 
 
 
 
-hdps::Dataset<DatasetImpl>& SelectedDatasetsAction::getDataset(std::size_t index) const
+mv::Dataset<DatasetImpl>& SelectedDatasetsAction::getDataset(std::size_t index) const
 {
     return data(index)->currentDataset;
     //return _data.at(index)->currentDataset;
@@ -344,11 +344,6 @@ SelectedDatasetsAction::Widget::Widget(QWidget* parent, SelectedDatasetsAction* 
             layout->addWidget(currentDatasetAction->data(i)->datasetPickerAction.createWidget(this), i + offset, column++);
 
         }
-
-
-
-
-        setPopupLayout(layout);
 
     }
     else {
