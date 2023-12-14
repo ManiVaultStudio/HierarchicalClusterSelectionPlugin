@@ -130,7 +130,6 @@ namespace CytosploreViewerPlugin
         , _originalName(getGuiName())
         , _selectedDatasetsAction(this,3,"SelectedDatasets", "Selected Datasets")
 
-        , _settingsAction(this)
         , _treeView(nullptr)
         , _selectedOptionsAction(this, "Selection")
         , _commandAction(this,"command")
@@ -147,7 +146,6 @@ namespace CytosploreViewerPlugin
 
         publishAndSerializeAction(&_selectedOptionsAction, true);
         serializeAction(&_selectedDatasetsAction);
-    	serializeAction(&_settingsAction);
         serializeAction(&_commandAction);
     }
 
@@ -163,35 +161,37 @@ namespace CytosploreViewerPlugin
         auto mainLayout = new QGridLayout();
         delete mainWidget.layout();
         mainWidget.setLayout(mainLayout);
-
        // mainWidget.setAcceptDrops(true);
         mainWidget.setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-
         const int margin = 0;
         mainLayout->setContentsMargins(margin, margin, margin, margin);
         mainLayout->setSpacing(0);
-
-        
-        _settingsAction.addAction(_selectedDatasetsAction, 1);
-        _settingsAction.addAction(_selectedOptionsAction, 2);
-        auto *widget = _settingsAction.createWidget(&mainWidget, 1);
-        widget->hide();
-        mainLayout->addWidget(widget, 0, 0);
-
-        
-
+        const auto topToolbarWidget = new QWidget();
+        const auto topToolbarLayout = new QHBoxLayout();
+        topToolbarLayout->setContentsMargins(0, 0, 0, 0);
+        topToolbarLayout->setSpacing(0);
+        auto datasetsActionWidget= _selectedDatasetsAction.createWidget(&getWidget());
+        datasetsActionWidget->setMaximumWidth(100);
+        datasetsActionWidget->setMinimumWidth(50);
+        topToolbarLayout->addWidget(_selectedDatasetsAction.createLabelWidget(&getWidget()));
+        topToolbarLayout->addWidget(datasetsActionWidget);
+        auto selectedOptionsActionWidget = _selectedOptionsAction.createWidget(&getWidget());
+        selectedOptionsActionWidget->setMaximumWidth(150);
+        selectedOptionsActionWidget->setMinimumWidth(100);
+        topToolbarLayout->addWidget(_selectedOptionsAction.createLabelWidget(&getWidget()));
+        topToolbarLayout->addWidget(selectedOptionsActionWidget);
+        topToolbarWidget->setAutoFillBackground(true);
+        topToolbarWidget->setLayout(topToolbarLayout);
+        mainLayout->addWidget(topToolbarWidget, 0, 0);
        _treeView = new QTreeView(&mainWidget);
         _treeView->setModel(&_model);
         _treeView->setHeaderHidden(true);
         _treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
         _treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        
         QItemSelectionModel *selectionModel = _treeView->selectionModel();
         connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &HierarchicalClusterSelectionPlugin::selectionChanged);
         mainLayout->addWidget(_treeView, 1, 0);
 
-        
-        
     }
 
 

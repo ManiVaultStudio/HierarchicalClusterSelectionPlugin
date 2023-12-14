@@ -6,8 +6,6 @@
 
 #include "SelectedDatasetsAction.h"
 
-#include "SettingsAction.h"
-
 // MV includes
 #include <cstdio>
 #include <ViewPlugin.h>
@@ -15,6 +13,7 @@
 
 #include "actions/Actions.h"
 #include "actions/VariantAction.h"
+
 
 
 
@@ -111,8 +110,7 @@ namespace  CytosploreViewerPlugin
 
         //actions
         SelectedDatasetsAction              _selectedDatasetsAction;
-     
-        SettingsAction                      _settingsAction;
+
 
         OptionsAction                       _selectedOptionsAction;
         VariantAction                       _commandAction;

@@ -33,7 +33,7 @@ SelectedDatasetsAction::Data::Data(SelectedDatasetsAction* parent, int index)
     , datasetPickerAction(parent, "Dataset")
 
     , datasetNameStringAction(parent, "Dataset")
-    , datasetSelectedAction(parent, "Active Dataset", true, true)
+    , datasetSelectedAction(parent, "Active Dataset")
 {
 
 
@@ -45,7 +45,7 @@ SelectedDatasetsAction::Data::Data(SelectedDatasetsAction* parent, int index)
             datasetPickerAction.setText(datasetGuiName);
             datasetNameStringAction.setString(datasetGuiName);
             datasetNameStringAction.setText(datasetGuiName);
-            datasetSelectedAction.setText("");
+            datasetSelectedAction.setText("Dataset");
         }
 
         {
@@ -344,11 +344,6 @@ SelectedDatasetsAction::Widget::Widget(QWidget* parent, SelectedDatasetsAction* 
             layout->addWidget(currentDatasetAction->data(i)->datasetPickerAction.createWidget(this), i + offset, column++);
 
         }
-
-
-
-
-        setPopupLayout(layout);
 
     }
     else {

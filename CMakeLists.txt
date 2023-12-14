@@ -34,8 +34,6 @@ set(ACTIONS
     src/PluginAction.cpp
     src/SelectedDatasetsAction.h
     src/SelectedDatasetsAction.cpp
-    src/SettingsAction.h
-    src/SettingsAction.cpp
 )
 
 set(AUX
